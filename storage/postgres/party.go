@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	pb "public_service/genproto"
+	pb "public/genproto"
 	"strings"
 	"time"
 )
@@ -16,15 +16,17 @@ func NewPartyRepo(db *sql.DB) *PartyRepo {
 	return &PartyRepo{}
 }
 
-func (pr *PartyRepo) Create(party *pb.PartyCreate) error {
+func (pr *PartyRepo) Create(party *pb.PartyCreate) (*pb.Void, error) {
+	res := &pb.Void{}
+
 	query := `INSERT INTO party(name, slogan, opened_date, description) VALUES ($1, $2, $3, $4)`
 
 	_, err := pr.db.Exec(query, party.Name, party.Slogan, party.OpenedDate, party.Description)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return res, nil
 }
 
 func (pr *PartyRepo) GetByID(id *pb.GetByIdReq) (*pb.PartyRes, error) {
@@ -46,20 +48,22 @@ func (pr *PartyRepo) GetByID(id *pb.GetByIdReq) (*pb.PartyRes, error) {
 	return res, nil
 }
 
-func (pr *PartyRepo) GetAll(filter *pb.Filter, name, opened_date string) (*pb.GetAllPartysResponse, error) {
-	res := &[]pb.PartyRes{}
+func (pr *PartyRepo) GetAll(party *pb.GetAllPartysRequest) (*pb.GetAllPartysResponse, error) {
+	res := &pb.GetAllPartysResponse{
+		Party: []*pb.PartyRes{},
+	}
 
 	query := `SELECT id, name, slogan, opened_date, description FROM party`
 
 	var args []interface{}
 	var conditions []string
 
-	if name != "" {
-		args = append(args, name)
+	if party.Name != "" {
+		args = append(args, party.Name)
 		conditions = append(conditions, fmt.Sprintf("name = $%d", len(args)))
 	}
-	if opened_date != "" {
-		args = append(args, opened_date)
+	if party.OpenedDate != "" {
+		args = append(args, party.OpenedDate)
 		conditions = append(conditions, fmt.Sprintf("opened_date = $%d", len(args)))
 	}
 
@@ -72,13 +76,14 @@ func (pr *PartyRepo) GetAll(filter *pb.Filter, name, opened_date string) (*pb.Ge
 	if err != nil {
 		return nil, err
 	}
-	if filter.Limit == 0 {
-		filter.Limit = defaultLimit
+	if party.Filter.Limit == 0 {
+		party.Filter.Limit = defaultLimit
 	}
 
-	args = append(args, filter.Limit, filter.Offset)
+	args = append(args, party.Filter.Limit, party.Filter.Offset)
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(args)-1, len(args))
 
+	fmt.Println(query, args)
 	rows, err := pr.db.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -97,32 +102,33 @@ func (pr *PartyRepo) GetAll(filter *pb.Filter, name, opened_date string) (*pb.Ge
 		if err != nil {
 			return nil, err
 		}
-		*res = append(*res, *pr)
+		res.Party = append(res.Party, pr)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	response := &pb.GetAllPartysResponse{
-		Party: res,
-	}
-	return response, nil
+	return res, nil
 }
 
-func (pr *PartyRepo) Update(party *pb.PartyUpdate) error {
+func (pr *PartyRepo) Update(party *pb.PartyUpdate) (*pb.Void, error) {
+	res := &pb.Void{}
+
 	query := `UPDATE party SET name = $1, slogan $ 2, opened_date = $3, description = $4, updated_at=now() WHERE id = $5`
 
 	_, err := pr.db.Exec(query, party.Name, party.Slogan, party.OpenedDate, party.Description)
 
-	return err
+	return res, err
 }
 
-func (pr *PartyRepo) Delete(id *pb.GetByIdReq) error {
+func (pr *PartyRepo) Delete(id *pb.GetByIdReq) (*pb.Void, error) {
+	res := &pb.Void{}
+
 	query := `UPDATE party SET deleted_at=$1 WHERE id = $2`
 
 	_, err := pr.db.Exec(query, time.Now(), id)
 
-	return err
+	return res, err
 
 }

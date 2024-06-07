@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type Logger struct {
+type Loggerr struct {
 	INFO  *log.Logger
 	WARN  *log.Logger
 	ERROR *log.Logger
@@ -14,8 +14,8 @@ type Logger struct {
 	TRACE *log.Logger
 }
 
-func NewLogger(basepath, path string) *Logger {
-	l := &Logger{}
+func Logger(basepath, path string) *Loggerr {
+	l := &Loggerr{}
 
 	fullpath := basepath + "/" + path
 	var file, err = os.OpenFile(fullpath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
