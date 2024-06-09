@@ -17,7 +17,7 @@ type PublicI interface {
 
 type PartyI interface {
 	Create(party *pb.PartyCreate) (*pb.Void, error)
-	GetById(id *pb.GetByIdReq) (*pb.PartyRes, error)
+	GetByID(id *pb.GetByIdReq) (*pb.PartyRes, error)
 	GetAll(filter *pb.GetAllPartysRequest) (*pb.GetAllPartysResponse, error)
 	Update(public *pb.PartyUpdate) (*pb.Void, error)
 	Delete(id *pb.GetByIdReq) (*pb.Void, error)

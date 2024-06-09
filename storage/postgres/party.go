@@ -117,7 +117,13 @@ func (pr *PartyRepo) Update(party *pb.PartyUpdate) (*pb.Void, error) {
 
 	query := `UPDATE party SET name = $1, slogan $ 2, opened_date = $3, description = $4, updated_at=now() WHERE id = $5`
 
-	_, err := pr.db.Exec(query, party.Name, party.Slogan, party.OpenedDate, party.Description)
+	_, err := pr.db.Exec(query,
+		party.UpdateParty.Name,
+		party.UpdateParty.Slogan,
+		party.UpdateParty.OpenedDate,
+		party.UpdateParty.Description,
+		party.Id,
+	)
 
 	return res, err
 }

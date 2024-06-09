@@ -14,8 +14,7 @@ type Storage struct {
 	PartyS  storage.PartyI
 }
 
-func NewPostgresStorage() (*Storage, error) {
-	cfg := config.Load()
+func NewPostgresStorage(cfg config.Config) (*Storage, error) {
 
 	con := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		cfg.PostgresUser,
@@ -47,7 +46,7 @@ func (s *Storage) Public() storage.PublicI {
 	return s.PublicS
 }
 
-func (s *Storage) Product() storage.PartyI {
+func (s *Storage) Party() storage.PartyI {
 	if s.PartyS == nil {
 		s.PartyS = NewPartyRepo(s.Db)
 	}

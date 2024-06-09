@@ -1,24 +1,34 @@
-package client
+package main
 
 import (
+	"log"
+	"net"
+	"public/config"
+
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	pb "public/genproto"
+	"public/service"
+	"public/storage/postgres"
 )
 
-type GrpcClients struct {
-	PublicService pb.PublicServiceClient
-	PartyService  pb.PartyServiceClient
-}
+func main() {
+	cfg := config.Load()
 
-func NewGrpcClients() (*GrpcClients, error) {
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	db, err := postgres.NewPostgresStorage(cfg)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 
-	return &GrpcClients{
-		PublicService: pb.NewPublicServiceClient(conn),
-		PartyService:  pb.NewPartyServiceClient(conn),
-	}, nil
+	liss, err := net.Listen("tcp", ":8082")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
+	pb.RegisterPartyServiceServer(s, service.NewPartyService(db))
+	pb.RegisterPublicServiceServer(s, service.NewPublicService(db))
+	log.Printf("server listening at %v", liss.Addr())
+	if err := s.Serve(liss); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

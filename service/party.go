@@ -24,7 +24,7 @@ func (p *PartyService) Create(ctx context.Context, req *pb.PartyCreate) (*pb.Voi
 }
 
 func (p *PartyService) GetById(ctx context.Context, req *pb.GetByIdReq) (*pb.PartyRes, error) {
-	res, err := p.stg.Party().GetById(req)
+	res, err := p.stg.Party().GetByID(req)
 	if err != nil {
 		return nil, err
 	}

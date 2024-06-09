@@ -166,10 +166,12 @@ func (p *PublicRepo) Update(public *pb.PublicUpdate) (*pb.Void, error) {
 	res := &pb.Void{}
 	query := `UPDATE public SET first_name=$1, last_name=$2, birtday=$3, nation=$4, party_id=$5, updated_at=now() WHERE id = $6`
 	_, err := p.db.Exec(query,
-		public.FirstName,
-		public.LastName,
-		public.Birthday,
-		public.Nation,
+		public.UpdatePublic.FirstName,
+		public.UpdatePublic.LastName,
+		public.UpdatePublic.Birthday,
+		public.UpdatePublic.Nation,
+		public.UpdatePublic.PartyId,
+		public.Id,
 	)
 	if err != nil {
 		return nil, err
